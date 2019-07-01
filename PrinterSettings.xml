@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<PrintSettings>
+  <PrintMode>Bluetooth</PrintMode>
+  <COMSettings>
+    <PortName>COM4</PortName>
+    <BaudRate>38400</BaudRate>
+    <Serial>000000</Serial>
+    <Key>000-000-000</Key>
+    <ECRModel>MP55L</ECRModel>
+    <CheckStatus>True</CheckStatus>
+    <ActiveKeyboard>True</ActiveKeyboard>
+  </COMSettings>
+</PrintSettings>
