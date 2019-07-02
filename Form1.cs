@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FPrintWin;
+using System;
 using System.Collections.Generic;
 using System.IO.Ports;
 using System.Windows.Forms;
@@ -237,7 +238,7 @@ namespace FPrintWin
             if (!activeKeyb)
                 checkStatus = false;
 
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
                 if (string.IsNullOrEmpty(txtKey.Text))
@@ -245,7 +246,7 @@ namespace FPrintWin
                     MessageBox.Show("Ju lutemi te vendosni numrin e licences!", "Kujdes!");
                     return;
                 }
-                int answer = fp.OpenPort(Model, Key, ComPort);
+                int answer = fp.OpenPort(Model, Key, ComPort, Baud);
                 if (answer == 1)
                 {
                     try
@@ -256,10 +257,9 @@ namespace FPrintWin
                             inv.Add("H,1,______,_,__;");
 
                         //inv.Add("M,1,______,_,__;12345");
-
                         for (int i = 0; i < length; i++)
                         {
-                            inv.Add("S,1,______,_,__;Artikulli " + i + " ; 70.00; 2.00; 3;1; 1; 0; 0;");
+                            inv.Add("S,1,______,_,__;Artikulli " + i + " ; 70.00; 2.00; 2;1; 1; 0; 0;");
                             inv.Add("C,1,______,_,__;1;10;");
                             //inv.Add("V,1,______,_,__;");
                         }
@@ -267,25 +267,32 @@ namespace FPrintWin
                         inv.Add("C,1,______,_,__;1;10;");
                         inv.Add("T,1,______,_,__;");
 
-                        inv.Add("D,1,______,_,__;");
+                        //inv.Add("D,1,______,_,__;");
 
                         if (activeKeyb)
                             inv.Add("F,1,______,_,__;");
 
+                        //print
+                        string line, nextline = "";
                         for (int i = 0; i < inv.Count; i++)
                         {
-                            if (!fp.WriteLine(inv[i]))
+                            line = inv[i];
+                            //check if next line is discount
+                            if (i < inv.Count -1) //nese ka akoma rreshta
+                                nextline = inv[i + 1];
+
+                            //nese rreshti dyte eshte me C qe nenkupton zbritje dergo te dy rreshtat bashke qe te aplikohet zbritja
+                            if (nextline.StartsWith("C,1,______,_,__;", StringComparison.Ordinal))
+                            {
+                                fp.ExecuteScript(new string[] { line, nextline });
+                            }
+                            else if (fp.WriteLine(inv[i]) == 0)
                             {
                                 Console.WriteLine("err: " + inv[i]);
-                                MessageBox.Show("Gabim kominikim me kasen! Ju lutemi te kontrolloni per leter ose per kabllin e komunikimit! \n\rShtyp ok per te vazhduar!"
+                                MessageBox.Show($"Gabim kominikim me kasen!\rRreshti: {inv[i]}"
                                      , "Konfirmo!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
 
-                                // return one step
-                                i--;
-                            }
-                            else
-                            {
-                                //Console.WriteLine("Send item " + inv[i] + " - OK");
+                                return;
                             }
                         }
                     }
@@ -384,10 +391,10 @@ namespace FPrintWin
 
         private void btnGetSerial_Click(object sender, EventArgs e)
         {
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
-                txtSerial.Text = fp.GetSerial(ComPort);
+                txtSerial.Text = fp.GetSerial(ComPort, Baud);
                 if (txtSerial.Text.Length < 3 && !string.IsNullOrEmpty(txtSerial.Text))
                     fp.getError(Convert.ToInt32(txtSerial.Text));
                 else
@@ -411,10 +418,10 @@ namespace FPrintWin
         {
             loadPrinterSettings();
 
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
-                int answer = fp.OpenPort(Model, Key, ComPort);
+                int answer = fp.OpenPort(Model, Key, ComPort, Baud);
                 if (answer == 1)
                 {
                     MessageBox.Show("Key Registered Sucessfully");
@@ -460,8 +467,8 @@ namespace FPrintWin
 
         private void button4_Click(object sender, EventArgs e)
         {
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
-            int answer = fp.OpenPort(Model, Key, ComPort);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
+            int answer = fp.OpenPort(Model, Key, ComPort, Baud);
             if (answer == 1)
             {
                 fp.WriteLine("T,1,______,_,__;");
