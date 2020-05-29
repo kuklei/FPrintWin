@@ -173,6 +173,11 @@ namespace FPrintWin
 
         private void savePrinterSettings()
         {
+			if (cbPort.SelectedIndex == -1)
+			{
+				MessageBox.Show("Zgjidhni porten COM");
+				return;
+			}
             System.Xml.XmlDocument xml = new System.Xml.XmlDocument();
             System.Xml.XmlNodeList nodeList = null;
             string xmlFilePath = string.Format("{0}\\PrinterSettings.xml", System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase));
@@ -197,7 +202,11 @@ namespace FPrintWin
                     node["CheckStatus"].InnerText = chkCheckStatus.Checked.ToString();
                     node["ActiveKeyboard"].InnerText = this.chkAktiveKeyb.Checked.ToString();
                 }
-                catch { }
+                catch (Exception x) {
+#if DEBUG
+					MessageBox.Show(x.Message);
+#endif
+				}
             }
 
             xml.Save(path);
@@ -239,7 +248,7 @@ namespace FPrintWin
             if (!activeKeyb)
                 checkStatus = false;
 
-            IFiscalPrinter fp = PrinterFactory.Create(Model);
+            IFiscalPrinter fp = PrinterFactory.Create(Model, checkStatus, activeKeyb);
             try
             {
                 if (string.IsNullOrEmpty(txtKey.Text))
@@ -288,6 +297,7 @@ namespace FPrintWin
                             if (nextline.StartsWith("C,1,______,_,__;", StringComparison.Ordinal))
                             {
                                 fp.ExecuteScript(new string[] { line, nextline });
+								i++; //i should be increased as two lines have been printed by the script
                             }
                             
                             else if (fp.WriteLine(inv[i]) == 0)
@@ -420,6 +430,7 @@ namespace FPrintWin
 
         private void btnCheckKey_Click(object sender, EventArgs e)
         {
+			savePrinterSettings();
             loadPrinterSettings();
 
             IFiscalPrinter fp = PrinterFactory.Create(Model);
