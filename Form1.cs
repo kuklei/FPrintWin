@@ -1,5 +1,7 @@
-﻿using System;
+﻿using FPrintWin;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Windows.Forms;
 using System.Xml;
@@ -237,7 +239,7 @@ namespace FPrintWin
             if (!activeKeyb)
                 checkStatus = false;
 
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
                 if (string.IsNullOrEmpty(txtKey.Text))
@@ -245,50 +247,59 @@ namespace FPrintWin
                     MessageBox.Show("Ju lutemi te vendosni numrin e licences!", "Kujdes!");
                     return;
                 }
-                int answer = fp.OpenPort(Model, Key, ComPort);
+                int answer = fp.OpenPort(Model, Key, ComPort, Baud); //nese ku ka lidhje me kasen kjo then NULL dhe nuk kemi fare objekt fiskal
                 if (answer == 1)
                 {
                     try
                     {
-                        List<string> inv = new List<string>();
-
-                        if (activeKeyb)
-                            inv.Add("H,1,______,_,__;");
-
-                        //inv.Add("M,1,______,_,__;12345");
-
-                        for (int i = 0; i < length; i++)
+                        string[] inv = { };
+                        //read 
+                        if (!File.Exists("sample.txt"))
                         {
-                            inv.Add("S,1,______,_,__;Artikulli " + i + " ; 70.00; 2.00; 3;1; 1; 0; 0;");
-                            inv.Add("C,1,______,_,__;1;10;");
-                            //inv.Add("V,1,______,_,__;");
+                            MessageBox.Show("Mungon file me komandat");
+                            return;
                         }
-                        inv.Add("T,1,______,_,__;4;");
-                        inv.Add("C,1,______,_,__;1;10;");
-                        inv.Add("T,1,______,_,__;");
-
-                        inv.Add("D,1,______,_,__;");
-
-                        if (activeKeyb)
-                            inv.Add("F,1,______,_,__;");
-
-                        for (int i = 0; i < inv.Count; i++)
+                        inv = File.ReadAllLines("sample.txt");
+                        // check the length of the file
+                        if (inv.Length == 0)
                         {
-                            if (!fp.WriteLine(inv[i]))
+                            MessageBox.Show("Mungon sample.txt file qe ka komenadat e kases");
+                            return;
+
+                        }
+                        //print
+                        string line, nextline = "";
+                        for (int i = 0; i < inv.Length; i++)
+                        {
+                            line = inv[i];
+                            //check if next line is discount
+                            if (i < inv.Length - 1) //nese ka akoma rreshta
+                                nextline = inv[i + 1];
+
+                            //nese kemi hapur nje fature jotatimore me komanden J atehere duhet mbyllyr me cript dhe jo tek per tek
+                            //pra e mira eshte nese kemi file me info jotatimore i gjithe file te excecutohet si nje script dhe jo tek per tek
+                            if (inv[0].StartsWith(("J,1,______,_,__;")))
+                            {
+                                fp.ExecuteScript(inv);
+                                return;
+                            }
+
+                            //nese rreshti dyte eshte me C qe nenkupton zbritje dergo te dy rreshtat bashke qe te aplikohet zbritja
+                            if (nextline.StartsWith("C,1,______,_,__;", StringComparison.Ordinal))
+                            {
+                                fp.ExecuteScript(new string[] { line, nextline });
+                            }
+                            
+                            else if (fp.WriteLine(inv[i]) == 0)
                             {
                                 Console.WriteLine("err: " + inv[i]);
-                                MessageBox.Show("Gabim kominikim me kasen! Ju lutemi te kontrolloni per leter ose per kabllin e komunikimit! \n\rShtyp ok per te vazhduar!"
+                                MessageBox.Show($"Gabim kominikim me kasen!\rRreshti: {inv[i]}"
                                      , "Konfirmo!", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1);
 
-                                // return one step
-                                i--;
-                            }
-                            else
-                            {
-                                //Console.WriteLine("Send item " + inv[i] + " - OK");
-                            }
-                        }
-                    }
+                                return;
+                            }//end check if next line is discount
+                        } //end loop
+                    }//end try
                     catch (Exception err)
                     {
                         Console.WriteLine(err.Message);
@@ -306,7 +317,7 @@ namespace FPrintWin
                     return;
                 }
             }
-            catch (Exception ex) { }
+            catch (Exception ex) { MessageBox.Show("Nuk ka lidhje me kasen. Ose kasa fikur ose COM port jo i rregullt. Err: " + ex.ToString()); } //ne kete rast FP nuk eshte inicaizluar fare si objekt se nuk ka patur lidhje me kasen dhe kthen null error
             finally { fp.Dispose(); }
         }
 
@@ -384,10 +395,10 @@ namespace FPrintWin
 
         private void btnGetSerial_Click(object sender, EventArgs e)
         {
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
-                txtSerial.Text = fp.GetSerial(ComPort);
+                txtSerial.Text = fp.GetSerial(ComPort, Baud);
                 if (txtSerial.Text.Length < 3 && !string.IsNullOrEmpty(txtSerial.Text))
                     fp.getError(Convert.ToInt32(txtSerial.Text));
                 else
@@ -411,10 +422,10 @@ namespace FPrintWin
         {
             loadPrinterSettings();
 
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
             try
             {
-                int answer = fp.OpenPort(Model, Key, ComPort);
+                int answer = fp.OpenPort(Model, Key, ComPort, Baud);
                 if (answer == 1)
                 {
                     MessageBox.Show("Key Registered Sucessfully");
@@ -458,10 +469,13 @@ namespace FPrintWin
             }
         }
 
+        //kjo eshte vetem per kasat e vjetra kur ngel tastiera e bllokuar
         private void button4_Click(object sender, EventArgs e)
         {
-            FiscalPrinter fp = new FiscalPrinter(checkStatus, activeKeyb);
-            int answer = fp.OpenPort(Model, Key, ComPort);
+            if (Model.Contains("W")) return;
+
+            IFiscalPrinter fp = PrinterFactory.Create(Model);
+            int answer = fp.OpenPort(Model, Key, ComPort, Baud);
             if (answer == 1)
             {
                 fp.WriteLine("T,1,______,_,__;");

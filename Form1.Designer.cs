@@ -187,13 +187,11 @@
             // 
             // cbEcrModel
             // 
-            this.cbEcrModel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.cbEcrModel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.cbEcrModel.Items.AddRange(new object[] {
-            "MP55L",
-            "DP50",
             "DP25",
-            "MP55B"});
+            "WP25"});
             this.cbEcrModel.Location = new System.Drawing.Point(157, 6);
             this.cbEcrModel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.cbEcrModel.Name = "cbEcrModel";
@@ -202,8 +200,8 @@
             // 
             // txtSerial
             // 
-            this.txtSerial.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtSerial.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtSerial.Location = new System.Drawing.Point(3, 98);
             this.txtSerial.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtSerial.Name = "txtSerial";
@@ -248,8 +246,8 @@
             // 
             // txtKey
             // 
-            this.txtKey.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtKey.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtKey.Location = new System.Drawing.Point(4, 130);
             this.txtKey.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.txtKey.MaxLength = 11;
@@ -324,8 +322,6 @@
             // 
             this.cbBaudRate.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.cbBaudRate.Items.AddRange(new object[] {
-            "9600",
-            "19200",
             "38400",
             "115200"});
             this.cbBaudRate.Location = new System.Drawing.Point(142, 34);
