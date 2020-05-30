@@ -4,11 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.28307.705
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPrintWinExe", "FPrintWinExe.csproj", "{65D55A74-E294-418C-856D-60B31712A02A}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2F606393-2FF3-4A16-B96D-44654A609E34} = {2F606393-2FF3-4A16-B96D-44654A609E34}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPrintWinDll", "..\..\FPrintWinDLL\FPrintWinDll.csproj", "{2F606393-2FF3-4A16-B96D-44654A609E34}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
